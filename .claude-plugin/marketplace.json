@@ -1,0 +1,19 @@
+{
+  "name": "swe-skills",
+  "owner": {
+    "name": "Jiří Pešík"
+  },
+  "metadata": {
+    "description": "Agent skills for software engineering work.",
+    "version": "0.1.0"
+  },
+  "plugins": [
+    {
+      "name": "swe-skills",
+      "source": "./",
+      "description": "All skills in this repo: pr-requirements-check.",
+      "category": "development",
+      "tags": ["skills", "code-review", "pull-requests"]
+    }
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "name": "swe-skills",
+  "description": "Agent skills for software engineering work: PR readiness checks and more. Works in Claude Code and Codex.",
+  "version": "0.1.0",
+  "author": {
+    "name": "Jiří Pešík"
+  },
+  "homepage": "https://github.com/pesikj/swe-agent-skills",
+  "repository": "https://github.com/pesikj/swe-agent-skills",
+  "license": "MIT",
+  "keywords": ["skills", "software-engineering", "code-review", "pull-requests"]
+}

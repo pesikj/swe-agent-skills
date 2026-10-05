@@ -1,6 +1,6 @@
 ---
 name: pr-requirements-check
-description: Checks whether a pull request meets every requirement in its issue and decides if the PR is ready to send for review. Takes an issue (number, URL, or pasted text) and a PR (number, URL, or local branch), pulls each requirement out of the issue, finds the code and tests in the diff that address it, and writes an English Markdown report with a status table, an explanation for each requirement, and a code/test coverage analysis. Use when the user asks "can this PR go to review", "check the PR against the issue", "are all requirements resolved", "requirements review", or runs /pr-requirements-check.
+description: Checks whether a pull request meets every requirement in its issue and decides if the PR is ready to send for review. Takes an issue (number, URL, or pasted text) and a PR (number, URL, or local branch), pulls each requirement out of the issue, finds the code and tests in the diff that address it, and writes an English Markdown report with a status table, an explanation for each requirement, and a code/test coverage analysis. Use when the user asks "can this PR go to review", "check the PR against the issue", "are all requirements resolved", "requirements review", or invokes pr-requirements-check by name.
 argument-hint: <issue #/URL/text> <PR #/URL/branch> [output path]
 ---
 
@@ -12,7 +12,7 @@ The report is always written in **English**. The only non-English text allowed i
 
 ## 1. Resolve inputs
 
-Arguments: `$ARGUMENTS`
+Take the issue, PR, and optional output path from the arguments passed with the invocation or from the request itself.
 
 - **Issue**: a GitHub issue number (`#123` / `123`), an issue URL, or issue text pasted into the conversation.
   - Number/URL → `gh issue view <ref> --json number,title,body,labels,url,comments`
