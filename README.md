@@ -7,6 +7,8 @@ Agent skills for software engineering work. Each skill is a folder with a `SKILL
 | Skill | What it does |
 |---|---|
 | [`pr-requirements-check`](skills/pr-requirements-check/SKILL.md) | Checks a PR against every requirement in its issue and writes an English Markdown readiness report. The PR is ready for review only if all requirements are satisfied. |
+| [`review-comment-analysis`](skills/review-comment-analysis/SKILL.md) | Explains each code review comment on an MR/PR in the context of the code it references, checks whether it is true, proposes fixes, scores quality gain vs. complexity cost, and recommends Resolve or Decline. Drafts a reply for declined comments. On request, implements the chosen fix, stages it with a `Code review <id>` commit message (without committing), and after you push, verifies the fix and posts `Resolved in <sha>`. |
+| [`test-value-review`](skills/test-value-review/SKILL.md) | Reviews each test added or modified in a branch or PR: what it protects, what would make it fail, and how likely that is. Assigns a risk category and recommends Keep, Remove, or Merge/simplify, to keep low-value test bloat out of the codebase. |
 
 ## Install
 

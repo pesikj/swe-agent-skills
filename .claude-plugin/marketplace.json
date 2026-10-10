@@ -11,7 +11,7 @@
     {
       "name": "swe-skills",
       "source": "./",
-      "description": "All skills in this repo: pr-requirements-check.",
+      "description": "All skills in this repo: pr-requirements-check, review-comment-analysis, test-value-review.",
       "category": "development",
       "tags": ["skills", "code-review", "pull-requests"]
     }
