@@ -95,7 +95,7 @@ Don't aim for a quota in either direction. If every test is justified, say so; i
 
 ## 6. Write the report
 
-Default output path: `~/test-value-reports/<repo-name>/<branch-or-pr>.md` (create the directory; replace `/` in branch names with `-`). If the user gives a path, use it. Don't write the report into the reviewed repository unless the user explicitly asks.
+Save the report to `~/swe-skill-reports/<repo-name>/<file-name>`, where `<repo-name>` is the reviewed repository's name (from its remote URL, or its top-level directory name), and create the directory if it doesn't exist. Reports always go outside the reviewed repository: if the user gives an output path, use it only if it is outside the repository; otherwise use the default path and tell the user why. File name: `test-value-review_<branch-or-pr>.md` (replace `/` in branch names with `-`).
 
 Use this structure:
 

@@ -1,6 +1,6 @@
 {
   "name": "swe-skills",
-  "description": "Agent skills for software engineering work: PR readiness checks, review comment analysis, test value reviews, and more. Works in Claude Code and Codex.",
+  "description": "Agent skills for software engineering work: PR readiness checks, review comment analysis and resolution checks, test value reviews, and more. Works in Claude Code and Codex.",
   "version": "0.2.0",
   "author": {
     "name": "Jiří Pešík"

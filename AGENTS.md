@@ -17,6 +17,10 @@ This repo is a library of agent skills that must work in both Claude Code and Co
   - Don't name tools that only one agent has (`AskUserQuestion`, `TodoWrite`, …). Describe the action ("ask the user").
   - Refer to repo instructions as "CLAUDE.md / AGENTS.md".
 - Optional Claude Code-only frontmatter (`argument-hint`, `allowed-tools`) is fine; Codex ignores it.
+- If a skill writes a report, use the shared report location. Copy this paragraph into the skill and add the skill's file name, which starts with the skill name (for example `test-value-review_<branch>.md`):
+
+  > Save the report to `~/swe-skill-reports/<repo-name>/<file-name>`, where `<repo-name>` is the reviewed repository's name (from its remote URL, or its top-level directory name), and create the directory if it doesn't exist. Reports always go outside the reviewed repository: if the user gives an output path, use it only if it is outside the repository; otherwise use the default path and tell the user why.
+
 - Keep `SKILL.md` under about 500 lines. Move long reference material into separate files the skill loads when needed.
 
 ## Checks

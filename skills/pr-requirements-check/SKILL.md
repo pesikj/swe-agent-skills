@@ -72,7 +72,7 @@ Missing tests don't block by themselves unless the issue or the repo's contribut
 
 ## 6. Write the report
 
-Default output path: `~/pr-readiness-reports/<repo-name>/issue-<N>_pr-<M>.md` (create the directory; use `pasted` / `<branch>` when there's no number). If the user gives a path, use it instead. **Never write the report into the reviewed repository** unless the user explicitly asks.
+Save the report to `~/swe-skill-reports/<repo-name>/<file-name>`, where `<repo-name>` is the reviewed repository's name (from its remote URL, or its top-level directory name), and create the directory if it doesn't exist. Reports always go outside the reviewed repository: if the user gives an output path, use it only if it is outside the repository; otherwise use the default path and tell the user why. File name: `pr-requirements-check_issue-<N>_pr-<M>.md` (use `pasted` / `<branch>` when there's no number; replace `/` in branch names with `-`).
 
 Use this structure:
 

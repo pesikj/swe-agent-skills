@@ -1,6 +1,6 @@
 ---
 name: review-comment-analysis
-description: Analyzes code review comments on a GitLab MR or GitHub PR, decides whether each is worth resolving, and on request implements the chosen fix and posts the reply. Analysis reads the comment with the code it references at the commit it was written on, checks whether its claim is true, proposes fixes, and scores quality gain vs. complexity cost (0-4 each) for a Resolve / Decline verdict, with replies drafted for declines. Takes one comment (URL, ID, or pasted text) or a whole MR/PR (every unresolved thread) and writes an English Markdown report. Follow-up steps: implement a selected fix, iterate on it with the user, stage it with a "Code review <id>" commit message (never commits), then, once the user has pushed, verify the fix and post "Resolved in <sha>" with gh / glab. Use when the user asks "should I fix this comment", "go through the MR comments", "implement fix A for F1", "apply the recommended fix", "reply to the reviewer", "post the resolution", or invokes review-comment-analysis by name.
+description: Analyzes code review comments on a GitLab MR or GitHub PR, decides whether each is worth resolving, and on request implements the chosen fix and posts the reply. Analysis reads the comment with the code it references at the commit it was written on, checks whether its claim is true, proposes fixes, and scores quality gain vs. complexity cost (0-4 each) for a Resolve / Decline verdict, with replies drafted for declines. Takes one comment (URL, ID, or pasted text) or a whole MR/PR (every unresolved thread) and writes an English Markdown report. Follow-up steps: implement a selected fix, iterate on it with the user, stage it with a "Code review <id>" commit message (commits and pushes only when asked), then, once pushed, verify the fix and post "Resolved in <sha>" with gh / glab. Use when the user asks "should I fix this comment", "go through the MR comments", "implement fix A for F1", "apply the recommended fix", "reply to the reviewer", "post the resolution", or invokes review-comment-analysis by name.
 argument-hint: <comment URL/ID | MR/PR #/URL | pasted comment> [output path] | implement <finding> [fix] | post reply <finding>
 ---
 
@@ -14,13 +14,13 @@ The report is in **English**. Quotes of the comment stay in the original languag
 
 ## Workflow
 
-The skill has three phases. Each one starts only when the user asks for it, and between them the user is in control: they review the code, commit, and push.
+The skill has three phases. Each one starts only when the user asks for it, and between them the user is in control: they review the code, and they commit and push or ask you to.
 
 1. **Analyze** (steps 1–8): the default when the user gives a comment or an MR/PR. Writes the report and changes nothing.
-2. **Implement a fix** (step 9): when the user asks to apply a fix from the report ("implement fix A for F1", "apply the recommended fix for note 87130"). Ends with the fix staged and a commit message prepared, never committed.
-3. **Post the reply** (step 10): when the user, after committing and pushing, asks to answer the comment ("post the reply for F1", "reply that it's resolved"). Verifies the pushed commit, then posts `Resolved in <sha>`.
+2. **Implement a fix** (step 9): when the user asks to apply a fix from the report ("implement fix A for F1", "apply the recommended fix for note 87130"). Ends with the fix staged and a commit message prepared; the agent commits only if the user then asks it to.
+3. **Post the reply** (step 10): when the user, after the fix is committed and pushed, asks to answer the comment ("post the reply for F1", "reply that it's resolved"). Verifies the pushed commit, then posts `Resolved in <sha>`.
 
-Figure out which phase the request is for. If it is a follow-up in a new conversation, find the earlier report at the default path (step 7) instead of redoing the analysis.
+Figure out which phase the request is for. If it is a follow-up in a new conversation, find the earlier report at the default path (step 7) instead of redoing the analysis. Reports whose replies have been posted live in its `archive/` subdirectory (step 10).
 
 ## 1. Resolve the input
 
@@ -143,7 +143,7 @@ Style, following how engineers answer reviews when they're declining for a good 
 
 ## 7. Write the report
 
-Default output path: `~/review-comment-reports/<repo-name>/<mr-or-pr-number>-<note-id>.md` for a single comment, `~/review-comment-reports/<repo-name>/<mr-or-pr-number>-all.md` for a whole MR/PR (create the directory). If the user gives a path, use it. Don't write into the reviewed repository unless the user explicitly asks.
+Save the report to `~/swe-skill-reports/<repo-name>/<file-name>`, where `<repo-name>` is the reviewed repository's name (from its remote URL, or its top-level directory name), and create the directory if it doesn't exist. Reports always go outside the reviewed repository: if the user gives an output path, use it only if it is outside the repository; otherwise use the default path and tell the user why. File name: `review-comment-analysis_<mr-or-pr-number>-<note-id>.md` for a single comment, `review-comment-analysis_<mr-or-pr-number>-all.md` for a whole MR/PR.
 
 For a **single comment**, use this structure (for a whole MR/PR, see below):
 
@@ -154,10 +154,6 @@ For a **single comment**, use this structure (for a whole MR/PR, see below):
 - **Comment:** [note <id>](url) by @<author>, <date>
 - **Location:** `path:line` at `<short sha>` (now `path:line` / unchanged / removed)
 - **Date:** YYYY-MM-DD
-
-## Verdict
-
-**✅ Resolve with Fix A** / **❌ Decline — <reason>**: one-sentence summary. Quality gain Q=<x>/4 (<level>), complexity cost C=<y>/4 (<level>).
 
 ## The Comment
 
@@ -202,7 +198,7 @@ For a **single comment**, use this structure (for a whole MR/PR, see below):
 
 | Quality gain | Complexity cost | Verdict |
 |---|---|---|
-| <x> — <level> | <y> — <level> | ✅ Resolve / ❌ Decline — <reason> |
+| <x> — <level> | <y> — <level> | ✅ Resolve (Fix A) / ❌ Decline — <reason> |
 
 **Justification:** <two to four sentences>
 
@@ -267,7 +263,20 @@ The user picks a finding and a fix. They may pick the recommended fix, another o
 - Prepare the commit message `Code review <id>`, where `<id>` is the comment's ID: the GitLab note ID, or the GitHub comment ID. For a finding merged from duplicate notes, use the note the report lists first. If the user asked to fix several comments together, list them: `Code review 87130, 86713`.
 - Show `git diff --cached --stat` and the message, ready to use, e.g. `git commit -m "Code review 87130"`.
 
-**Don't commit and don't push.** The user commits and pushes themselves. Tell them that once it's pushed, they can ask you to post the reply.
+Don't commit yet. Tell the user they can commit and push it themselves or ask you to, and that once it's pushed, they can ask you to post the reply.
+
+**Commit (only if the user asks).** If the user asks you to commit the staged fix:
+
+- Check `git diff --cached --name-only` first. If the index now holds anything besides the fix's files (the user may have staged more since), list it and ask before committing, because the commit takes everything staged.
+- Commit only what is staged, with exactly the prepared message: `git commit -m "Code review <id>"`. Don't use `-a`, don't add other text to the message, and don't skip hooks with `--no-verify`. If a hook fails or changes files, report it and let the user decide.
+- Show the new commit's hash and subject (`git log -1 --format='%H %s'`).
+
+**Push (only if the user asks).** If the user asks you to push the fix:
+
+- The branch must have an upstream that is the MR/PR source branch (`git rev-parse --abbrev-ref @{upstream}`). If it has none, or it points elsewhere, ask where to push instead of guessing.
+- Check what would go out: `git log --oneline @{upstream}..HEAD`. If it includes commits other than the fix, list them and ask first, because pushing sends them all.
+- Run a plain `git push`. Never force-push (`--force`, `--force-with-lease`), and don't push other branches or tags. If the push is rejected because the remote moved on, report it and let the user decide; don't pull, rebase, or merge on your own.
+- Confirm the result with the pushed commit's hash, and tell the user they can now ask you to post the reply.
 
 ## 10. Post the reply (on request)
 
@@ -287,7 +296,11 @@ The user asks to reply to a resolved comment. Before posting anything, check tha
    - GitHub review (diff) comment, reply in its thread: `gh api -X POST repos/{owner}/{repo}/pulls/<n>/comments/<comment_id>/replies -f body="Resolved in <sha>"`. Reply to the thread's first comment.
    - GitHub general comment or review body: these have no threads, so a bare "Resolved in …" would be ambiguous. Post `gh pr comment <n> --body "<link to the comment>"$'\n\n'"Resolved in <sha>"` and tell the user you added the link.
 
-6. **Report back** with a link to the posted reply. Don't resolve the thread; leave that to the reviewer or the user.
+6. **Archive the report** once the reply is posted, so the reports directory only holds comments that still need work. Move the report into an `archive/` subdirectory next to it (for the default path, `~/swe-skill-reports/<repo-name>/archive/`), creating it if needed, and keep the file name. If a file with that name is already there, add the date: `<name>-YYYY-MM-DD.md`.
+   - A single-comment report is archived right after its reply is posted.
+   - A whole-MR/PR report covers several findings, so archive it only when every finding in it has been answered: each thread is resolved or has a reply from the MR/PR author (a declined point the user answered with the draft reply counts). Check the threads on the MR/PR rather than relying on memory. Until then, leave the report in place and tell the user which findings are still open.
+   - Move only the report file. If it can't be found (the user wrote it elsewhere and didn't say where), say so and skip this step.
+7. **Report back** with a link to the posted reply and where the report is now. Don't resolve the thread; leave that to the reviewer or the user.
 
 If several findings were fixed, handle each one separately: each gets its own checks and its own reply.
 
@@ -297,7 +310,7 @@ If several findings were fixed, handle each one separately: each gets its own ch
 - Don't trust the comment's description of the code. Verify it.
 - During analysis (steps 1–8), don't modify code and don't change git state (no checkout, stash, reset, or commit). Use `git show` and `git diff` to read other revisions.
 - Modify code only in step 9, only for the fix the user chose, and only after they ask.
-- Never commit, push, amend, stash, reset, or check out a branch. The only write to git you make is staging the fix's files in step 9; `git fetch` is fine.
-- Post only in step 10, only `Resolved in <sha>`, and only after the checks pass. Never resolve threads. Other replies (such as decline replies) are drafts for the user to post.
+- Never amend, stash, reset, rebase, pull, force-push, or check out a branch. The only writes to git you make are in step 9: staging the fix's files and, if the user asks, committing them with the `Code review <id>` message and pushing that commit to the MR/PR source branch. `git fetch` is fine.
+- Post only in step 10, only `Resolved in <sha>`, and only after the checks pass. Archive the report only after a successful post. Never resolve threads. Other replies (such as decline replies) are drafts for the user to post.
 - Don't add review findings of your own beyond a one-line note.
 - Mask any credential that appears in a comment.
